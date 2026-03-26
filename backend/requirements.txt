@@ -13,3 +13,4 @@ python-multipart
 PyPDF2
 spacy
 scikit-learn
+langchain-groq
