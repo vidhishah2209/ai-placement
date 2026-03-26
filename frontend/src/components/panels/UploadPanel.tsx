@@ -114,7 +114,7 @@ interface UploadPanelProps {
   onNavigate: (section: SectionId) => void;
 }
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 const UploadPanel = ({ userId, onAnalysisComplete, onNavigate }: UploadPanelProps) => {
   const [file, setFile] = useState<File | null>(null);
