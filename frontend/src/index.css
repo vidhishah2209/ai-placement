@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+
+    /* Deep space dark palette */
+    --background: 228 30% 10%;
+    --foreground: 225 20% 88%;
+
+    --card: 228 25% 13%;
+    --card-foreground: 225 20% 88%;
+
+    --popover: 228 25% 13%;
+    --popover-foreground: 225 20% 88%;
+
+    /* Purple accent */
+    --primary: 256 90% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 228 20% 18%;
+    --secondary-foreground: 225 20% 82%;
+
+    --muted: 228 18% 16%;
+    --muted-foreground: 225 15% 55%;
+
+    --accent: 270 60% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 20% 18%;
+    --input: 228 20% 20%;
+    --ring: 256 90% 58%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - darker */
+    --sidebar-background: 228 35% 8%;
+    --sidebar-foreground: 225 20% 75%;
+    --sidebar-primary: 256 90% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 228 25% 14%;
+    --sidebar-accent-foreground: 225 20% 88%;
+    --sidebar-border: 228 20% 14%;
+    --sidebar-ring: 256 90% 58%;
+
+    /* Extended tokens */
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+    --info: 217 71% 53%;
+    --info-foreground: 0 0% 100%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(256 90% 58%), hsl(270 60% 58%));
+    --gradient-hero: linear-gradient(160deg, hsl(228 35% 8%) 0%, hsl(256 40% 15%) 50%, hsl(228 30% 10%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(228 25% 14%) 0%, hsl(228 30% 11%) 100%);
+    --gradient-glow: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), hsl(256 90% 58% / 0.06), transparent 40%);
+
+    /* Shadows */
+    --shadow-glow: 0 0 40px -10px hsl(256 90% 58% / 0.3);
+    --shadow-card: 0 4px 24px -4px hsl(228 30% 5% / 0.5);
+    --shadow-elevated: 0 8px 40px -8px hsl(228 30% 5% / 0.6);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    font-family: var(--font-display);
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+  }
+
+  .glow-border {
+    position: relative;
+  }
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--gradient-primary);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px -5px hsl(256 90% 58% / 0.3); }
+  50% { box-shadow: 0 0 30px -5px hsl(256 90% 58% / 0.5); }
+}

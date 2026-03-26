@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+asyncpg
+python-dotenv
+pydantic
+pymupdf
+langgraph
+google-generativeai
+groq
+tenacity
+python-multipart
+PyPDF2
+spacy
+scikit-learn

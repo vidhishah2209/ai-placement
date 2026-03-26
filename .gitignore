@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+# Build outputs
+/frontend/dist/
+/frontend/build/
+# Python virtual environments
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+# Environment variables
+.env
+.env.local
+# OS generated files
+.DS_Store
+Thumbs.db
+# Database files
+*.sqlite3
+*.db
+# IDEs and editors
+.vscode/
+.idea/
+# Test coverage
+coverage/
+# Logs
+logs/
+*.log
