@@ -18,6 +18,7 @@ app.add_middleware(
         "http://127.0.0.1:8080",
         "https://ai-placement-cell.vercel.app",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
