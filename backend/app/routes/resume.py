@@ -162,9 +162,4 @@ async def get_analyze_status(job_id: str):
     job = job_store.get(job_id)
     if not job:
         return {"status": "error", "message": "Unknown Job ID"}
-    return jobt.get("supervisor_passed"),
-        "interview_qna": result.get("interview_qna"),
-        "confidence_score": result.get("confidence_score"),
-        "db_saved": result.get("db_saved"),
-        "errors": result.get("errors", []),
-    }
+    return job
