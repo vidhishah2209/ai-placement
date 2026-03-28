@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends
+from fastapi import APIRouter, UploadFile, File, Form, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models import Resume
@@ -12,6 +12,8 @@ import PyPDF2
 
 router = APIRouter()
 
+# In-memory store for background jobs (Use Redis in a real distributed production env)
+job_store = {}
 
 def extract_text_from_pdf(file_path):
     text = ""
@@ -76,24 +78,54 @@ async def upload_resume(
         "scoring": scoring_result,
     }
 
+# ═══════════════════════════════════════════════════════════
+# Full LangGraph Pipeline (Background Polling Architecture)
+# ═══════════════════════════════════════════════════════════
 
-# ═══════════════════════════════════════════════════════════
-# NEW: Full LangGraph Pipeline Endpoint
-# ═══════════════════════════════════════════════════════════
+def run_pipeline_background(job_id: str, raw_text: str, target_role: str, user_id: str, page_count: int, filename: str):
+    try:
+        result = run_pipeline(
+            raw_text=raw_text,
+            target_role=target_role,
+            user_id=user_id,
+            page_count=page_count,
+        )
+        
+        job_store[job_id] = {
+            "status": "completed",
+            "data": {
+                "message": "Full pipeline analysis complete",
+                "resume_id": result.get("resume_id"),
+                "filename": filename,
+                "text_preview": raw_text[:500],
+                "parsed_resume": result.get("parsed_json"),
+                "ats_score": result.get("ats_score"),
+                "skill_gaps": result.get("skill_gaps"),
+                "improved_resume": result.get("improved_resume"),
+                "supervisor_passed": result.get("supervisor_passed"),
+                "interview_qna": result.get("interview_qna"),
+                "confidence_score": result.get("confidence_score"),
+                "db_saved": result.get("db_saved"),
+                "errors": result.get("errors", []),
+            }
+        }
+    except Exception as e:
+        job_store[job_id] = {
+            "status": "error",
+            "message": str(e)
+        }
 
 @router.post("/analyze-resume/")
 async def analyze_resume(
+    background_tasks: BackgroundTasks,
     user_id: str = Form(...),
     target_role: str = Form(default="Software Engineer"),
     file: UploadFile = File(...),
 ):
     """
-    Run the full 8-agent LangGraph pipeline on an uploaded resume PDF.
-
-    Returns: parsed resume, ATS score, skill gaps, improved resume,
-    interview Q&A, and placement confidence score.
+    Kicks off the full 8-agent LangGraph pipeline in the background.
+    Returns a job_id instantly to prevent Render 60s proxy timeouts.
     """
-    # Save file
     upload_folder = "uploads"
     os.makedirs(upload_folder, exist_ok=True)
     file_path = os.path.join(upload_folder, file.filename)
@@ -101,31 +133,36 @@ async def analyze_resume(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Extract text and page count
     extracted_text, page_count = extract_text_from_pdf(file_path)
 
     if not extracted_text.strip():
         return {"error": "Could not extract text from PDF. Is it a scanned image?"}
 
-    # Run the full LangGraph pipeline (Agents 1-8)
-    result = run_pipeline(
+    job_id = str(uuid.uuid4())
+    job_store[job_id] = {"status": "processing"}
+
+    background_tasks.add_task(
+        run_pipeline_background,
+        job_id=job_id,
         raw_text=extracted_text,
         target_role=target_role,
         user_id=user_id,
         page_count=page_count,
+        filename=file.filename
     )
 
-    # Build response (exclude raw_text to keep response lean)
-    return {
-        "message": "Full pipeline analysis complete",
-        "resume_id": result.get("resume_id"),
-        "filename": file.filename,
-        "text_preview": extracted_text[:500],
-        "parsed_resume": result.get("parsed_json"),
-        "ats_score": result.get("ats_score"),
-        "skill_gaps": result.get("skill_gaps"),
-        "improved_resume": result.get("improved_resume"),
-        "supervisor_passed": result.get("supervisor_passed"),
+    return {"job_id": job_id, "status": "processing"}
+
+@router.get("/analyze-status/{job_id}")
+async def get_analyze_status(job_id: str):
+    """
+    Check the status of a background job.
+    Returns the final dataset if status=="completed".
+    """
+    job = job_store.get(job_id)
+    if not job:
+        return {"status": "error", "message": "Unknown Job ID"}
+    return jobt.get("supervisor_passed"),
         "interview_qna": result.get("interview_qna"),
         "confidence_score": result.get("confidence_score"),
         "db_saved": result.get("db_saved"),

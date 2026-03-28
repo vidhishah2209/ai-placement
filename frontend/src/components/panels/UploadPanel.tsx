@@ -168,12 +168,39 @@ const UploadPanel = ({ userId, onAnalysisComplete, onNavigate }: UploadPanelProp
 
       const res = await fetch(`${API_BASE}/analyze-resume/`, { method: "POST", body: fd });
       const data = await res.json();
-      onAnalysisComplete(data);
+      
+      if (data.job_id) {
+        // Start Polling
+        const pollInterval = window.setInterval(async () => {
+          try {
+            const statusRes = await fetch(`${API_BASE}/analyze-status/${data.job_id}`);
+            const statusData = await statusRes.json();
+            
+            if (statusData.status === "completed") {
+              window.clearInterval(pollInterval);
+              clearInterval(stepInterval);
+              setLoading(false);
+              onAnalysisComplete(statusData.data);
+            } else if (statusData.status === "error") {
+              window.clearInterval(pollInterval);
+              clearInterval(stepInterval);
+              setLoading(false);
+              setError(statusData.message || "Analysis failed on the server.");
+            }
+          } catch (err) {
+            // Keep trying if network blips
+          }
+        }, 3000);
+      } else {
+        // Fallback for sync
+        clearInterval(stepInterval);
+        setLoading(false);
+        onAnalysisComplete(data);
+      }
     } catch {
-      setError("Analysis failed. Please check your connection and try again.");
-    } finally {
       clearInterval(stepInterval);
       setLoading(false);
+      setError("Analysis failed. Please check your connection and try again.");
     }
   };
 
